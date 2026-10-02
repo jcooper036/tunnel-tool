@@ -19,6 +19,16 @@ export PATH="$HOME/.cargo/bin:$PATH"
 `tun` installs to `~/.cargo/bin`
 Run `tun --help` for the commands. Every subcommand has its own `--help`.
 
+### Installing for agents
+Part of the usefullness of tunnel tool is that it lets you designate tunnels that your agents are ok to run.
+
+You can use whatever agent skill manager you'd like. I personally like to symlink the skill to my global agents skill folder, e.x.
+
+```
+ln -s ~/<path-to-tunnel-tool-root>/.agents/skills/tunnel-tool ~/<path-to-agent-config>/skills/tunnel-tool
+```
+That way, you pick up skill updates with `tun update`.
+
 ### updating
 ```bash
 tun update
