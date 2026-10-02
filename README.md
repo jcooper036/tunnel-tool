@@ -35,6 +35,18 @@ tun update
 ```
 This pulls from remote and re-installs at the same place as your checkout of this repo
 
+## Security
+
+`tun` runs shell commands from spec files and exposes remote services on local ports. Misused, it can expose internal services or move data off this machine.
+
+- Specs are arbitrary commands. Only register specs you have read. Agents with `tun create` authority can register any command
+- `tun` does not authenticate local connections. Any local process can reach a tunnel port
+- Tunnels keep running after the starting session ends. Check `tun status`
+- Logs in `~/.tun/logs` may contain credentials from the tunnel command
+- Keep access commands bound to `127.0.0.1`
+
+Provided as is, without warranty. See LICENSE.
+
 ## Concepts
 
 ### A tunnel is an outbound connection exposed on a local port
