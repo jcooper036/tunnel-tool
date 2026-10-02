@@ -7,7 +7,8 @@ It replaces a tmux pane per tunnel. Each tunnel is registered once, started by n
 ## Install
 
 ```bash
-cd <path-to-tunnel-tool-clone>
+git clone git@github.com:jcooper036/tunnel-tool.git
+cd tunnel-tool
 cargo install --path .
 ```
 
@@ -15,10 +16,14 @@ If you haven't used cargo and/or rust before, add this to your shell profile (ex
 ```bash
 export PATH="$HOME/.cargo/bin:$PATH"
 ```
-
-`tun` installs to `~/.cargo/bin`. `tun update` rebuilds and reinstalls from the same checkout, pulling first when the checkout has a remote. It installs whatever is checked out there, so keep that checkout on the branch you want.
-
+`tun` installs to `~/.cargo/bin`
 Run `tun --help` for the commands. Every subcommand has its own `--help`.
+
+### updating
+```bash
+tun update
+```
+This pulls from remote and re-installs at the same place as your checkout of this repo
 
 ## Concepts
 
