@@ -35,6 +35,10 @@ tun update
 ```
 This pulls from remote and re-installs at the same place as your checkout of this repo
 
+### Self-healing
+
+`tun` has no daemon, so a dead tunnel stays dead until something restarts it. For self-healing, run `tun heal` from a cron job. It restarts dead tunnels and never starts new ones. Cron has a minimal `PATH`, so call `tun` by its full path (`~/.cargo/bin/tun`), and set `TUN_HOME` in the job if you use a non-default home.
+
 ## Security
 
 `tun` runs shell commands from spec files and exposes remote services on local ports. Misused, it can expose internal services or move data off this machine.
