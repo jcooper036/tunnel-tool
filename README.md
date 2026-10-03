@@ -77,6 +77,8 @@ Sessions are rows in `~/.tun/tun.db`. Each session's output goes to `~/.tun/logs
 
 `tun` connects to services that are not on your machine. It does not manage services you host.
 
+For services you host on localhost (APIs, web apps, dev servers, notebooks), use the companion tool [`ser`](https://github.com/jcooper036/service-tool). `ser` is for what you host, `tun` is for what you connect to.
+
 ## Output for scripts and agents
 
 Stdout is data, diagnostics go to stderr, and exit codes are meaningful. Commands that report state take `--json`.
