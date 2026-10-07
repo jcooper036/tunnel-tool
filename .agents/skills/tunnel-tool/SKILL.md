@@ -23,7 +23,7 @@ Ports are assigned, not fixed. Ask `tun` for the port instead of assuming one fr
 
 ### Nothing in the registry fits
 
-If the service has no registered tunnel, create one with `tun create`. Do not run the raw command.
+If the service has no registered tunnel, suggest creating one with `tun create`. Do not run the raw command. You are never to create a tunnel without the user's permission - but you should suggest tunnels that you might need but do not have.
 
 ## Rules
 
@@ -91,6 +91,8 @@ tun status
 tun create <name> --command '<command with {port}>' --port-range 28100-28109 --health-check 'http://127.0.0.1:{port}/<health-path>'
 tun ensure <name>
 ```
+
+Again, suggest these commands to the user, do not execute them yourself unless given explicit permission.
 
 `doctor` checks every registered tunnel, so use `ensure` to test just the new one.
 
