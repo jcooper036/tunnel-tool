@@ -18,6 +18,8 @@ struct SessionDetail {
     created_at: String,
     stopped_at: Option<String>,
     log_path: String,
+    restarts: u32,
+    last_restart_at: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -41,6 +43,8 @@ fn session_detail(ctx: &Ctx, session: &Session) -> SessionDetail {
         created_at: session.created_at.clone(),
         stopped_at: session.stopped_at.clone(),
         log_path: session.log_path.clone(),
+        restarts: session.restarts,
+        last_restart_at: session.last_restart_at.clone(),
     }
 }
 
@@ -89,6 +93,7 @@ fn print_text(report: &Report) {
             let (start, end) = spec.preferred_port_range;
             println!("  port_range: {start}-{end}");
             println!("  auto_run_on_start: {}", spec.auto_run_on_start);
+            println!("  restart: {:?}", spec.restart);
             println!(
                 "  health_check: {}",
                 spec.health_check.as_deref().unwrap_or("none")
@@ -104,6 +109,11 @@ fn print_text(report: &Report) {
             println!("  process_id: {}", s.process_id);
             println!("  created_at: {}", s.created_at);
             println!("  stopped_at: {}", s.stopped_at.as_deref().unwrap_or("-"));
+            println!("  restarts: {}", s.restarts);
+            println!(
+                "  last_restart_at: {}",
+                s.last_restart_at.as_deref().unwrap_or("-")
+            );
             println!("  log_path: {}", s.log_path);
         }
         None => println!("session: none"),

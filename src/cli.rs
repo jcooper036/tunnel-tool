@@ -55,6 +55,24 @@ pub enum Command {
     Port(PortArgs),
     #[command(about = "Run a running tunnel's health check")]
     Check(CheckArgs),
+    #[command(about = "Manage the background process that restarts dead tunnels")]
+    Supervisor(SupervisorArgs),
+}
+
+#[derive(Args)]
+pub struct SupervisorArgs {
+    #[command(subcommand)]
+    pub action: SupervisorAction,
+}
+
+#[derive(Subcommand)]
+pub enum SupervisorAction {
+    #[command(about = "Run the supervisor in the foreground (started automatically)")]
+    Run,
+    #[command(about = "Say whether the supervisor is running")]
+    Status,
+    #[command(about = "Stop the supervisor; tunnels keep running but are no longer restarted")]
+    Stop,
 }
 
 #[derive(Args)]

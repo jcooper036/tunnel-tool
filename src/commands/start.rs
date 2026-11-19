@@ -10,12 +10,20 @@ use crate::db::{self, NewSession, Session};
 use crate::ports;
 use crate::process::{self, Liveness};
 use crate::spec::{self, TunnelSpec};
+use crate::supervisor;
 
 pub fn launch(ctx: &mut Ctx, spec: &TunnelSpec, port_override: Option<u16>) -> Result<Session> {
     let tx = ctx
         .conn
         .transaction_with_behavior(TransactionBehavior::Immediate)?;
-    let claimed: HashSet<u16> = db::active_sessions(&tx)?.iter().map(|s| s.port).collect();
+    let active = db::active_sessions(&tx)?;
+    if let Some(live) = active
+        .iter()
+        .find(|s| s.tunnel_name == spec.name && process::is_alive(s.process_id))
+    {
+        bail!("{} is already running (session {})", spec.name, live.id);
+    }
+    let claimed: HashSet<u16> = active.iter().map(|s| s.port).collect();
     let port = match port_override {
         Some(port) => ports::ensure_free(port, &claimed)?,
         None => ports::pick(spec.preferred_port_range, &claimed)?,
@@ -69,6 +77,7 @@ fn start_one(ctx: &mut Ctx, spec: &TunnelSpec, port: Option<u16>, wait: Duration
 }
 
 pub fn run(ctx: &mut Ctx, args: StartArgs) -> Result<()> {
+    supervisor::ensure_running(&ctx.home);
     let dir = ctx.home.tunnels_dir();
     let wait = Duration::from_secs(args.wait);
     if let Some(name) = args.name {

@@ -79,6 +79,7 @@ pub fn run(ctx: &Ctx, args: CreateArgs) -> Result<()> {
         preferred_port_range,
         auto_run_on_start,
         health_check: args.health_check,
+        restart: Default::default(),
     };
     let path = spec::save_new(&dir, &tunnel)?;
     println!("created {}", path.display());

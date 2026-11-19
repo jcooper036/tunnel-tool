@@ -9,6 +9,7 @@ use crate::db::{self, Session};
 use crate::health;
 use crate::process::{self, Liveness};
 use crate::spec::{self, TunnelSpec};
+use crate::supervisor;
 
 const HEALTH_POLL: Duration = Duration::from_millis(250);
 
@@ -102,6 +103,7 @@ fn ensure_all(ctx: &mut Ctx, timeout: Duration) -> Result<()> {
 }
 
 pub fn run(ctx: &mut Ctx, args: EnsureArgs) -> Result<()> {
+    supervisor::ensure_running(&ctx.home);
     let timeout = Duration::from_secs(args.timeout);
     match args.name {
         Some(name) => {

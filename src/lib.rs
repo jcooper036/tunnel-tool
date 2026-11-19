@@ -7,3 +7,4 @@ pub mod output;
 pub mod ports;
 pub mod process;
 pub mod spec;
+pub mod supervisor;

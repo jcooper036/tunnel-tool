@@ -7,6 +7,7 @@ use crate::commands::{Ctx, start, stop};
 use crate::db::{self, Session};
 use crate::process;
 use crate::spec;
+use crate::supervisor;
 
 fn resolve_name(active: &[Session], target: &str) -> String {
     active
@@ -16,6 +17,7 @@ fn resolve_name(active: &[Session], target: &str) -> String {
 }
 
 pub fn run(ctx: &mut Ctx, args: RestartArgs) -> Result<()> {
+    supervisor::ensure_running(&ctx.home);
     let active = db::active_sessions(&ctx.conn)?;
     let name = resolve_name(&active, &args.target);
     let tunnel = spec::find(&ctx.home.tunnels_dir(), &name)?;

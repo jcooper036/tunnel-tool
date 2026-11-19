@@ -43,6 +43,13 @@ fn create_sleeper(home: &TempDir, name: &str, port: u16) {
     );
 }
 
+fn never_restart(home: &TempDir, name: &str) {
+    let path = home.path().join("tunnels").join(format!("{name}.toml"));
+    let mut text = std::fs::read_to_string(&path).unwrap();
+    text.push_str("restart = \"never\"\n");
+    std::fs::write(path, text).unwrap();
+}
+
 #[test]
 fn start_status_stop() {
     let home = TempDir::new().unwrap();
@@ -68,6 +75,7 @@ fn heal_restarts_dead_tunnel_on_same_port() {
     let home = TempDir::new().unwrap();
     let port = free_port();
     create_sleeper(&home, "svc", port);
+    never_restart(&home, "svc");
     assert!(
         tun(&home, &["start", "svc", "--wait", "0"])
             .status

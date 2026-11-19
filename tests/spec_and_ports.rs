@@ -11,6 +11,7 @@ fn spec(command: &str, range: (u16, u16)) -> TunnelSpec {
         preferred_port_range: range,
         auto_run_on_start: false,
         health_check: None,
+        restart: Default::default(),
     }
 }
 

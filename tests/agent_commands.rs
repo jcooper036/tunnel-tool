@@ -64,6 +64,9 @@ fn ensure_relaunches_dead_tunnel_on_same_port() {
     let home = TempDir::new().unwrap();
     let port = free_port();
     create(&home, "web", SERVER, port, &[]);
+    let spec = home.path().join("tunnels/web.toml");
+    let text = std::fs::read_to_string(&spec).unwrap();
+    std::fs::write(&spec, text + "restart = \"never\"\n").unwrap();
     assert!(tun(&home, &["ensure", "web"]).status.success());
 
     Command::new("pkill")
