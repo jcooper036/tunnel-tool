@@ -5,6 +5,21 @@ use serde::{Deserialize, Serialize};
 
 pub const PORT_PLACEHOLDER: &str = "{port}";
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum RestartPolicy {
+    /// The supervisor relaunches the tunnel when it dies or fails its health check.
+    #[default]
+    OnFailure,
+    Never,
+}
+
+impl RestartPolicy {
+    fn is_default(&self) -> bool {
+        *self == Self::default()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TunnelSpec {
     pub name: String,
@@ -14,6 +29,8 @@ pub struct TunnelSpec {
     pub auto_run_on_start: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub health_check: Option<String>,
+    #[serde(default, skip_serializing_if = "RestartPolicy::is_default")]
+    pub restart: RestartPolicy,
 }
 
 impl TunnelSpec {

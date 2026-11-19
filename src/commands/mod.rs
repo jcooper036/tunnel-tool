@@ -17,12 +17,13 @@ pub mod update;
 use anyhow::Result;
 use rusqlite::Connection;
 
-use crate::cli::{Cli, Command};
+use crate::cli::{Cli, Command, SupervisorAction};
 use crate::db::{self, Session};
 use crate::health;
 use crate::home::Home;
 use crate::process::Liveness;
 use crate::spec;
+use crate::supervisor;
 
 pub struct Ctx {
     pub home: Home,
@@ -50,7 +51,14 @@ pub fn run(cli: Cli) -> Result<()> {
     if matches!(cli.command, Command::Update) {
         return update::run();
     }
-    let mut ctx = Ctx::open(Home::resolve(cli.home)?)?;
+    let home = Home::resolve(cli.home)?;
+    // A supervisor spawned into a state dir that has since been deleted must not recreate it.
+    if matches!(&cli.command, Command::Supervisor(a) if matches!(a.action, SupervisorAction::Run))
+        && !home.db_path().exists()
+    {
+        return Ok(());
+    }
+    let mut ctx = Ctx::open(home)?;
     match cli.command {
         Command::Update => unreachable!("handled before state is opened"),
         Command::Start(args) => start::run(&mut ctx, args),
@@ -67,5 +75,6 @@ pub fn run(cli: Cli) -> Result<()> {
         Command::Ensure(args) => ensure::run(&mut ctx, args),
         Command::Port(args) => port::run(&ctx, args),
         Command::Check(args) => check::run(&ctx, args),
+        Command::Supervisor(args) => supervisor::run(&mut ctx, args.action),
     }
 }

@@ -31,6 +31,18 @@ impl Home {
         self.root.join("tun.db")
     }
 
+    pub fn supervisor_lock_path(&self) -> PathBuf {
+        self.root.join("supervisor.lock")
+    }
+
+    pub fn supervisor_pid_path(&self) -> PathBuf {
+        self.root.join("supervisor.pid")
+    }
+
+    pub fn supervisor_log_path(&self) -> PathBuf {
+        self.root.join("supervisor.log")
+    }
+
     pub fn ensure(&self) -> Result<()> {
         for dir in [self.tunnels_dir(), self.logs_dir()] {
             std::fs::create_dir_all(&dir).with_context(|| format!("creating {}", dir.display()))?;

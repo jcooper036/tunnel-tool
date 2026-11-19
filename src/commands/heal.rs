@@ -4,6 +4,7 @@ use crate::commands::{Ctx, start};
 use crate::db::{self, Session};
 use crate::process::{self, Liveness};
 use crate::spec;
+use crate::supervisor;
 
 fn heal_one(ctx: &mut Ctx, session: &Session) -> Result<()> {
     let tunnel = spec::find(&ctx.home.tunnels_dir(), &session.tunnel_name)?;
@@ -17,6 +18,7 @@ fn heal_one(ctx: &mut Ctx, session: &Session) -> Result<()> {
 }
 
 pub fn run(ctx: &mut Ctx) -> Result<()> {
+    supervisor::ensure_running(&ctx.home);
     let dead: Vec<Session> = db::active_sessions(&ctx.conn)?
         .into_iter()
         .filter(|s| process::liveness(s.process_id, s.port) == Liveness::Dead)

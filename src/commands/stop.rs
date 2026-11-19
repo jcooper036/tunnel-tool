@@ -10,8 +10,12 @@ use crate::process;
 const GRACE: Duration = Duration::from_secs(3);
 
 pub fn stop_session(ctx: &Ctx, session: &Session) -> Result<()> {
-    process::terminate(session.process_id, GRACE);
-    db::mark_stopped(&ctx.conn, &session.id)
+    // Mark stopped first so the supervisor cannot revive it, then kill whatever
+    // process the row points at now (a restart may have replaced `session`'s pid).
+    db::mark_stopped(&ctx.conn, &session.id)?;
+    let pid = db::get_session(&ctx.conn, &session.id)?.map_or(session.process_id, |s| s.process_id);
+    process::terminate(pid, GRACE);
+    Ok(())
 }
 
 pub fn run(ctx: &mut Ctx, args: StopArgs) -> Result<()> {

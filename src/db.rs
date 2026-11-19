@@ -6,9 +6,10 @@ use chrono::Utc;
 use rusqlite::{Connection, Row, params};
 use uuid::Uuid;
 
-const MIGRATIONS: &[(&str, &str)] = &[(
-    "26100212_create_sessions",
-    "CREATE TABLE sessions (
+const MIGRATIONS: &[(&str, &str)] = &[
+    (
+        "26100212_create_sessions",
+        "CREATE TABLE sessions (
         id TEXT PRIMARY KEY,
         tunnel_name TEXT NOT NULL,
         created_at TEXT NOT NULL,
@@ -19,10 +20,15 @@ const MIGRATIONS: &[(&str, &str)] = &[(
         stopped_at TEXT
     );
     CREATE INDEX sessions_active_idx ON sessions (stopped_at);",
-)];
+    ),
+    (
+        "26111900_session_restarts",
+        "ALTER TABLE sessions ADD COLUMN restarts INTEGER NOT NULL DEFAULT 0;
+         ALTER TABLE sessions ADD COLUMN last_restart_at TEXT;",
+    ),
+];
 
-const SESSION_COLUMNS: &str =
-    "id AS sessions_id, tunnel_name, created_at, port, process_id, command, log_path, stopped_at";
+const SESSION_COLUMNS: &str = "id AS sessions_id, tunnel_name, created_at, port, process_id, command, log_path, stopped_at, restarts, last_restart_at";
 
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct Session {
@@ -34,6 +40,8 @@ pub struct Session {
     pub command: String,
     pub log_path: String,
     pub stopped_at: Option<String>,
+    pub restarts: u32,
+    pub last_restart_at: Option<String>,
 }
 
 pub struct NewSession<'a> {
@@ -55,6 +63,8 @@ impl Session {
             command: row.get(5)?,
             log_path: row.get(6)?,
             stopped_at: row.get(7)?,
+            restarts: row.get(8)?,
+            last_restart_at: row.get(9)?,
         })
     }
 }
@@ -124,6 +134,33 @@ pub fn mark_stopped(conn: &Connection, session_id: &str) -> Result<()> {
         params![Utc::now().to_rfc3339(), session_id],
     )?;
     Ok(())
+}
+
+pub fn get_session(conn: &Connection, id: &str) -> Result<Option<Session>> {
+    let sql = format!("SELECT {SESSION_COLUMNS} FROM sessions WHERE id = ?1");
+    let mut stmt = conn.prepare(&sql)?;
+    let mut rows = stmt.query_map([id], Session::from_row)?;
+    Ok(rows.next().transpose()?)
+}
+
+/// Point an active session at a freshly spawned process. Returns false if the
+/// session was stopped or already replaced since `old_pid` was read.
+pub fn record_restart(
+    conn: &Connection,
+    id: &str,
+    old_pid: u32,
+    new_pid: u32,
+    port: u16,
+    command: &str,
+) -> Result<bool> {
+    let changed = conn.execute(
+        "UPDATE sessions
+         SET process_id = ?1, port = ?2, command = ?3,
+             restarts = restarts + 1, last_restart_at = ?4
+         WHERE id = ?5 AND process_id = ?6 AND stopped_at IS NULL",
+        params![new_pid, port, command, Utc::now().to_rfc3339(), id, old_pid],
+    )?;
+    Ok(changed == 1)
 }
 
 pub fn find_sessions(conn: &Connection, target: &str, limit: usize) -> Result<Vec<Session>> {

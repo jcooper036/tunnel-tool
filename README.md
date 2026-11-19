@@ -37,7 +37,12 @@ This pulls from remote and re-installs at the same place as your checkout of thi
 
 ### Self-healing
 
-`tun` has no daemon, so a dead tunnel stays dead until something restarts it. For self-healing, run `tun heal` from a cron job. It restarts dead tunnels and never starts new ones. Cron has a minimal `PATH`, so call `tun` by its full path (`~/.cargo/bin/tun`), and set `TUN_HOME` in the job if you use a non-default home.
+`tun start`, `ensure`, `restart` and `heal` start one background supervisor per `TUN_HOME`. It relaunches a tunnel whose process exited, or whose port/health check has been failing for 20s, on the same port and in the same session (so the log is continuous). Retries back off 1s, 2s, 4s ... up to 30s, and the backoff resets after the tunnel has been healthy for 60s. Each restart is logged in the session log as `[tun] ... restart #N` and counted in `tun status` (RESTARTS) and `tun show`.
+
+- `tun stop` ends supervision of that tunnel for good; stopped tunnels are never revived.
+- Opt a spec out with `restart = "never"` (default `restart = "on-failure"`).
+- `tun supervisor status|stop` inspects or stops the supervisor. Stopping it leaves tunnels running but unsupervised. `tun update` does not restart it: run `tun supervisor stop` and then any `tun start`/`ensure` to pick up a new binary.
+- `tun heal` still works and is safe to run concurrently.
 
 ## Security
 
@@ -59,7 +64,7 @@ Clients connect to `localhost:<port>`. `tun status` is the lookup for which port
 
 ### Specs live in `~/.tun/tunnels/`
 
-A spec is a `.toml` file: a name, the command that opens the tunnel, a preferred port range, whether it auto-runs, and an optional health check. The command contains a `{port}` placeholder that `tun` fills in. `tun registry` lists them, and `tun create` writes one.
+A spec is a `.toml` file: a name, the command that opens the tunnel, a preferred port range, whether it auto-runs, an optional health check, and an optional `restart` policy. The command contains a `{port}` placeholder that `tun` fills in. `tun registry` lists them, and `tun create` writes one.
 
 ### Ports are assigned, not fixed
 

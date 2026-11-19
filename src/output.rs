@@ -16,6 +16,8 @@ pub struct SessionView {
     pub stopped_at: Option<String>,
     pub log_path: String,
     pub command: String,
+    pub restarts: u32,
+    pub last_restart_at: Option<String>,
 }
 
 pub const STOPPED_LABEL: &str = "stopped";
@@ -41,6 +43,8 @@ impl SessionView {
             stopped_at: session.stopped_at.clone(),
             log_path: session.log_path.clone(),
             command: session.command.clone(),
+            restarts: session.restarts,
+            last_restart_at: session.last_restart_at.clone(),
         }
     }
 }

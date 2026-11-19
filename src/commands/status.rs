@@ -41,7 +41,7 @@ fn quiet(ctx: &Ctx) -> Result<()> {
 fn print_table(views: &[SessionView]) {
     let mut table = Table::new();
     table.load_style(NOTHING);
-    table.set_header(["ID", "NAME", "ADDRESS", "PORT", "STATE"]);
+    table.set_header(["ID", "NAME", "ADDRESS", "PORT", "STATE", "RESTARTS"]);
     for v in views {
         table.add_row([
             v.session_id.clone(),
@@ -49,6 +49,7 @@ fn print_table(views: &[SessionView]) {
             v.address.clone(),
             v.port.to_string(),
             v.state.to_string(),
+            v.restarts.to_string(),
         ]);
     }
     println!("{table}");
